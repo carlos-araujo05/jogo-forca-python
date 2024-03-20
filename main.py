@@ -96,7 +96,7 @@ def draw_hangman_figure():
 def draw_word():
     display_word = ""
     for letter in word:
-        if letter in guessed_letters or "-" == letter == " ":
+        if letter in guessed_letters or letter == " ":
             display_word += letter + " "
         else:
             display_word += "_ "
@@ -106,8 +106,6 @@ def draw_word():
     screen.blit(text, (325, 470))
 
 # Função para desenhar as letras já adivinhadas
-
-
 def draw_guessed_letters():
     guessed_str = ", ".join(sorted(guessed_letters))
     font = pygame.font.Font(None, 36)
@@ -117,14 +115,10 @@ def draw_guessed_letters():
 
 
 # Função para verificar se o jogador ganhou
-
-
 def check_win():
-    return all(letter in guessed_letters for letter in word)
+    return all(letter in guessed_letters or letter == " " for letter in word)
 
 # Função para verificar se o jogador perdeu
-
-
 def check_loss():
     return wrong_guesses == 6
 
