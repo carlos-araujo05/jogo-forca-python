@@ -144,7 +144,7 @@ def reset_game():
     category, word = palavra_escolhida
     guessed_letters = set()
     wrong_guesses = 0
-    palavra_escolhida = select_word()
+    # palavra_escolhida = select_word()
 
 
 def show_end_message(message):
@@ -213,7 +213,7 @@ while True:
             som_sucesso.play()
             restart_choice = show_restart_popup()
             if restart_choice == "yes":
-                select_word()
+                palavra_escolhida = select_word()
                 break  # Reinicia o jogo
             else:
                 pygame.quit()
@@ -225,7 +225,7 @@ while True:
             show_end_message("Você perdeu!")
             restart_choice = show_restart_popup()
             if restart_choice == "yes":
-                select_word()
+                palavra_escolhida = select_word()
                 break  # Sai do loop interno
             else:
                 pygame.quit()
