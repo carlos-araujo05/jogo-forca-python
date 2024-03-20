@@ -5,6 +5,9 @@ import tkinter as tk
 from tkinter import messagebox
 
 pygame.init()
+pygame.mixer.init()
+som_sucesso = pygame.mixer.Sound("success.wav")
+som_gameover = pygame.mixer.Sound("gameover.wav")
 
 # Cores
 black = (0, 0, 0)
@@ -18,11 +21,23 @@ screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Jogo da forca")
 
 # Lista de palavras para o jogo
-words = ["PYTHON", "JAVA", "JAVASCRIPT", "HTML",
-         "CSS", "RUBY", "PHP", "MYSQL", "PYTHONIC"]
+words_to_draw = [
+    {
+        "Linguagem programação": ["PYTHON", "JAVA", "JAVASCRIPT", "RUBY", "PHP", "MYSQL"]
+    },
+    {
+        "País": ["BRASIL", "AFRICA", "COREIA", "ARGENTINA", "PARAGUAY", "JAPAO", "CHINA", "ESTADOS UNIDOS", "ALEMANHA"]
+    },
+    {
+        "Esporte": ["FUTEBOL", "BASQUETE", "VOLEI", "HANDEBOL", "BASEBALL", "NATACAO"],
+    }
+]
+
+word_dict = random.choice(words_to_draw)
 
 # Seleciona uma palavra aleatória
-word = random.choice(words)
+category, word_list = list(word_dict.items())[0]
+word = random.choice(word_list)
 
 # Conjunto de letras adivinhadas
 guessed_letters = set()
@@ -81,10 +96,11 @@ def draw_hangman_figure():
 def draw_word():
     display_word = ""
     for letter in word:
-        if letter in guessed_letters:
+        if letter in guessed_letters or "-" == letter == " ":
             display_word += letter + " "
         else:
             display_word += "_ "
+
     font = pygame.font.Font(None, 48)
     text = font.render(display_word, True, white)
     screen.blit(text, (325, 470))
@@ -95,8 +111,10 @@ def draw_word():
 def draw_guessed_letters():
     guessed_str = ", ".join(sorted(guessed_letters))
     font = pygame.font.Font(None, 36)
-    text = font.render(f"Digitadas: {guessed_str}", True, white)
+    text = font.render(f"Letras Digitadas: {guessed_str}", True, white)
     screen.blit(text, (15, 15))
+    mostrar_dica()
+
 
 # Função para verificar se o jogador ganhou
 
@@ -112,17 +130,21 @@ def check_loss():
 
 
 def select_word():
-    return random.choice(words)
+    word_dict = random.choice(words_to_draw)
+    category, word_list = list(word_dict.items())[0]
+    return category, random.choice(word_list)
+    # return random.choice(words_to_draw)
 
 
 palavra_escolhida = select_word()
 
 
 def reset_game():
-    global word, guessed_letters, wrong_guesses
-    word = palavra_escolhida
+    global category, word, guessed_letters, wrong_guesses, palavra_escolhida
+    category, word = palavra_escolhida
     guessed_letters = set()
     wrong_guesses = 0
+    palavra_escolhida = select_word()
 
 
 def show_end_message(message):
@@ -132,15 +154,9 @@ def show_end_message(message):
     screen.blit(text, (275, 250))
     if "perdeu" in message:
         font = pygame.font.Font(None, 48)
-        lost_next = font.render(f"A palavra era {palavra_escolhida}", True, red)
-        screen.blit(lost_next,(275,320))
-    pygame.display.flip()
-
-
-def show_restart_message():
-    font = pygame.font.Font(None, 36)
-    text = font.render("Fim de jogo, deseja jogar novamente? (y/n)", True, white)
-    screen.blit(text, (200, 350))
+        lost_next = font.render(
+            f"A palavra era {palavra_escolhida[1]}", True, red)
+        screen.blit(lost_next, (275, 320))
     pygame.display.flip()
 
 
@@ -149,6 +165,13 @@ def show_restart_popup():
     root.withdraw()
     restart = messagebox.askquestion("Fim de jogo", "Deseja jogar novamente?")
     return restart
+
+
+def mostrar_dica():
+    font = pygame.font.Font(None, 24)
+    hint_text = f"Dica: {category}"
+    text = font.render(hint_text, True, white)
+    screen.blit(text, (15, 50))
 
 
 # Loop principal do jogo
@@ -187,8 +210,10 @@ while True:
         # Verifica se o jogador ganhou
         if check_win():
             show_end_message("Você venceu!")
+            som_sucesso.play()
             restart_choice = show_restart_popup()
             if restart_choice == "yes":
+                select_word()
                 break  # Reinicia o jogo
             else:
                 pygame.quit()
@@ -196,9 +221,11 @@ while True:
 
         # Verifica se o jogador perdeu
         elif check_loss():
+            som_gameover.play()
             show_end_message("Você perdeu!")
             restart_choice = show_restart_popup()
             if restart_choice == "yes":
+                select_word()
                 break  # Sai do loop interno
             else:
                 pygame.quit()
